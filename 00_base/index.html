@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        html,
+        body {
+            padding: 0;
+            margin: 0;
+            overflow: hidden;
+        }
+        canvas {
+            position: absolute;
+            left: 50%;
+            margin-right: -50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+    </style>
+    <!-- シェーダー読み込み -->
+    <script id="gradientVert" type="x-shader/x-vertex" src="./gradient.vert"></script>
+    <script id="gradientFrag" type="x-shader/x-fragment" src="./gradient.frag"></script>
+    <!-- ポスプロ用js読み込み -->
+    <!-- <script id="ppVert" type="x-shader/x-vertex" src="./pp.vert"></script>
+    <script id="ppFragment" type="x-shader/x-fragment" src="./pp.frag"></script>
+    <script type="module" src="./postprocessing/EffectComposer.js"></script>
+    <script type="module" src="./postprocessing/MaskPass.js"></script>
+    <script type="module" src="./postprocessing/RenderPass.js"></script>
+    <script type="module" src="./postprocessing/ShaderPass.js"></script>
+    <script type="module" src="./postprocessing/CopyShader.js"></script> -->
+    
+    <!-- 描画周り読み込み -->
+    <script src="./three.min.js"></script>
+    <script src="./colorPalette.js"></script>
+    <script src="./sketch.js"></script>
+</head>
+
+<body>
+    <canvas class="webgl" id="myCanvas"></canvas>
+</body>
+
+</html>
