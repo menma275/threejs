@@ -79,56 +79,147 @@ function init() {
   const boxGeometry = new THREE.BoxGeometry(boxSize, boxSize, boxSize);
   const spehereGeometry = new THREE.SphereGeometry(boxSize / 2, 32, 16);
 
-  const gradientMaterial = new THREE.ShaderMaterial({
-    uniforms: {
-      color1: { value: new THREE.Color(colors[0]) },
-      color2: { value: new THREE.Color(colors[1]) },
-      boundingBoxMin: {
-        value: new THREE.Vector3(-boxSize / 2, -boxSize / 2, -boxSize / 2),
-      },
-      boundingBoxMax: {
-        value: new THREE.Vector3(boxSize / 2, boxSize / 2, boxSize / 2),
-      },
-    },
-    vertexShader: document.getElementById("gradientVert").textContent,
-    fragmentShader: document.getElementById("gradientFrag").textContent,
+  var brightColor = colors[1];
+  var darkColor = colors[2];
+
+  var bHSL = {};
+  var dHSL = {};
+  brightColor.getHSL(bHSL);
+  darkColor.getHSL(dHSL);
+
+  if (bHSL.l < dHSL.l) {
+    brightColor = new THREE.Color(colors[2]);
+    darkColor = new THREE.Color(colors[1]);
+  }
+
+  // shaderのマテリアル
+  const uniforms = {
+    time: { type: "f", value: 1.0 },
+    color1: { type: "vec3", value: darkColor },
+    color2: { type: "vec3", value: brightColor },
+  };
+
+  const vertexShader = `
+    precision mediump float;
+    varying vec2 vUv;
+    void main() {
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      vUv = uv;
+    }
+  `;
+
+  const fragmentShader = `
+    precision mediump float;
+    varying vec2 vUv;
+    uniform vec3 color1;
+    uniform vec3 color2;
+    uniform float time;
+
+    float rand(vec2 n) { 
+      return fract(sin(dot(n, vec2(12.9898, 4.1414))) * 43758.5453);
+    }
+
+    // Simplex 2D noise
+    vec3 permute(vec3 x) { 
+      return mod(((x*34.0)+1.0)*x, 289.0); 
+    }
+    float snoise(vec2 v){
+      const vec4 C = vec4(0.211324865405187, 0.366025403784439,
+              -0.577350269189626, 0.024390243902439);
+      vec2 i  = floor(v + dot(v, C.yy) );
+      vec2 x0 = v -   i + dot(i, C.xx);
+      vec2 i1;
+      i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
+      vec4 x12 = x0.xyxy + C.xxzz;
+      x12.xy -= i1;
+      i = mod(i, 289.0);
+      vec3 p = permute( permute( i.y + vec3(0.0, i1.y, 1.0 ))
+      + i.x + vec3(0.0, i1.x, 1.0 ));
+      vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy),
+        dot(x12.zw,x12.zw)), 0.0);
+      m = m*m ;
+      m = m*m ;
+      vec3 x = 2.0 * fract(p * C.www) - 1.0;
+      vec3 h = abs(x) - 0.5;
+      vec3 ox = floor(x + 0.5);
+      vec3 a0 = x - ox;
+      m *= 1.79284291400159 - 0.85373472095314 * ( a0*a0 + h*h );
+      vec3 g;
+      g.x  = a0.x  * x0.x  + h.x  * x0.y;
+      g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+      return 130.0 * dot(m, g);
+    }
+
+    void main() {
+
+      vec2 fuv = -1.0 + 2.0 * vUv;
+
+      float c = sin(fuv.s*fuv.t);
+      c = snoise(fuv*.5);
+
+      c *= rand(fuv)*1.0;
+
+      vec3 color = mix(color1, color2, c);
+      // color = vec3(c);
+
+      gl_FragColor = vec4(color, 1.0);
+    }
+  `;
+
+  material = new THREE.ShaderMaterial({
+    uniforms: uniforms,
+    vertexShader: vertexShader,
+    fragmentShader: fragmentShader,
   });
 
   // 基本図形を生成
   const box = new THREE.Mesh(boxGeometry, material);
-  // const boxTest = new THREE.Mesh(boxGeometry, gradientMaterial);
   const sphere = new THREE.Mesh(spehereGeometry, material);
 
-  console.log();
-  // scene.add(boxTest);
+  box.scale.set(10, 10, 5);
+  sphere.scale.set(5, 5, 5);
+  scene.add(box);
+  // scene.add(sphere);
 
   // objectをいっぱい配置
-  var boxSizeTempX, boxSizeTempY, boxSizeTempZ;
-  for (let i = 0; i < n; i++) {
-    for (let j = 0; j < Math.floor((height - offsetY * 2) / boxSize); j++) {
-      for (let k = 0; k < n; k++) {
-        var cloneGeo = box.clone();
-        var cloneMaterial = material.clone();
-        boxSizeTempX = Math.floor(Math.random() * 5) / 10 + 0.25;
-        boxSizeTempY = Math.floor(Math.random() * 15) / 10 + 0.5;
-        boxSizeTempZ = Math.floor(Math.random() * 10) / 10 + 0.5;
-        if (Math.random() < 0.25) {
-          cloneGeo = sphere.clone();
-          cloneGeo.scale.set(boxSizeTempX, boxSizeTempX, boxSizeTempX);
-        } else cloneGeo.scale.set(boxSizeTempX, boxSizeTempY, boxSizeTempZ);
-        var colorNum = Math.floor(Math.random() * (colors.length - 1)) + 1;
-        cloneMaterial.color = new THREE.Color(colors[colorNum]);
-        cloneGeo.material = cloneMaterial;
-        cloneGeo.position.x = -width / 2 + offset + boxSize / 2 + i * boxSize;
-        cloneGeo.position.y = -height / 2 + offsetY + boxSize / 2 + j * boxSize;
-        cloneGeo.position.z = -width / 2 + offset + boxSize / 2 + k * boxSize;
-        cloneGeo.rotation.x = Math.floor(Math.random() * 5) * 45 * Math.PI;
-        cloneGeo.rotation.y = Math.floor(Math.random() * 5) * 45 * Math.PI;
-        cloneGeo.rotation.z = Math.floor(Math.random() * 5) * 45 * Math.PI;
-        if (Math.random() < prob) scene.add(cloneGeo);
-      }
-    }
-  }
+  // var boxSizeTempX = 1;
+  // var boxSizeTempY = 1;
+  // var boxSizeTempZ = 1;
+  // for (let i = 0; i < n; i++) {
+  //   for (let j = 0; j < Math.floor((height - offsetY * 2) / boxSize); j++) {
+  //     for (let k = 0; k < n; k++) {
+  //       var cloneGeo = box.clone();
+  //       var cloneMaterial = material.clone();
+
+  //       boxSizeTempX = Math.floor(Math.random() * 5) / 10 + 0.25;
+  //       boxSizeTempY = Math.floor(Math.random() * 15) / 10 + 0.5;
+  //       boxSizeTempZ = Math.floor(Math.random() * 10) / 10 + 0.5;
+
+  //       if (Math.random() < 0.25) {
+  //         cloneGeo = sphere.clone();
+  //         cloneGeo.scale.set(boxSizeTempX, boxSizeTempX, boxSizeTempX);
+  //       } else cloneGeo.scale.set(boxSizeTempX, boxSizeTempY, boxSizeTempZ);
+
+  //       var colorNum0 = Math.floor(Math.random() * (colors.length - 1)) + 1;
+  //       var colorNum1 = Math.floor(Math.random() * (colors.length - 1)) + 1;
+
+  //       cloneMaterial.uniforms.color1.value = new THREE.Color(
+  //         colors[colorNum0]
+  //       );
+  //       cloneMaterial.uniforms.color2.value = new THREE.Color(
+  //         colors[colorNum1]
+  //       );
+  //       // cloneMaterial.color = new THREE.Color(colors[colorNum]);
+  //       cloneGeo.material = cloneMaterial;
+
+  //       cloneGeo.position.x = -width / 2 + offset + boxSize / 2 + i * boxSize;
+  //       cloneGeo.position.y = -height / 2 + offsetY + boxSize / 2 + j * boxSize;
+  //       cloneGeo.position.z = -width / 2 + offset + boxSize / 2 + k * boxSize;
+
+  //       if (Math.random() < prob) scene.add(cloneGeo);
+  //     }
+  //   }
+  // }
 
   // ビューを変化
   const rotateXZ = Math.random();
@@ -137,22 +228,11 @@ function init() {
   if (Math.random() < 0.5) scene.rotation.y = 45 * (Math.PI / 180);
   else scene.rotation.y = -45 * (Math.PI / 180);
 
-  // レンダリング結果に対してエフェクト
-  // レンダリングターゲットを作成する
-  // var renderTarget = new THREE.WebGLRenderTarget(innerWidth, innerHeight);
-  // シェーダーパスの作成
-  // var effectPass = new THREE.ShaderPass(shaderMaterial);
-  // effectPass.renderToScreen = true;
-  // // エフェクトを適用するレンダリングパイプラインの作成
-  // var composer = new THREE.EffectComposer(renderer, renderTarget);
-  // composer.addPass(new THREE.RenderPass(scene, camera));
-  // composer.addPass(effectPass);
-
   tick();
 
   function tick() {
+    // box.rotation.x += 0.01;
     requestAnimationFrame(tick);
-    // composer.render();
     renderer.render(scene, camera);
   }
 }

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        html,
+        body {
+            padding: 0;
+            margin: 0;
+            overflow: hidden;
+        }
+        canvas {
+            position: absolute;
+            left: 50%;
+            margin-right: -50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+    </style>
+    <!-- シェーダー読み込み -->
+    <!-- <script id="testVert" type="x-shader/x-vertex" src="./test.vert"></script> -->
+    <!-- <script id="testFrag" type="x-shader/x-fragment" src="./test.frag"></script> -->
+
+    <!-- 描画周り読み込み -->
+    <script src="./three.min.js"></script>
+    <script src="./colorPalette.js"></script>
+    <script src="./sketch.js"></script>
+</head>
+
+<body>
+    <canvas class="webgl" id="myCanvas"></canvas>
+</body>
+
+</html>
