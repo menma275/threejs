@@ -44,6 +44,7 @@ function init() {
   width = windowSize;
   var height = windowSize;
 
+  // colors = colorPalette();
   colors = generativePalette();
 
   renderer = new THREE.WebGLRenderer({
@@ -67,14 +68,12 @@ function init() {
   camera.position.set(0, 500, 1000);
   camera.lookAt(new THREE.Vector3(0, 0, 0));
 
-  const n = Math.floor(Math.random() * 6) + 5;
+  var n = Math.floor(Math.random() * 4) + 5;
   const prob = interpolate(n);
   const offset = width / 3;
   var offsetY = (height - (width - offset * 2)) / 2;
   offsetY = offset / 2;
   const boxSize = (width - offset * 2) / n;
-
-  var material = new THREE.MeshBasicMaterial({});
 
   const boxGeometry = new THREE.BoxGeometry(boxSize, boxSize, boxSize);
   const spehereGeometry = new THREE.SphereGeometry(boxSize / 2, 32, 16);
@@ -155,14 +154,14 @@ function init() {
       vec2 fuv = -1.0 + 2.0 * vUv;
 
       float c = sin(fuv.s*fuv.t);
-      c = snoise(fuv*.5);
+      // c = snoise(fuv*.5);
 
-      c *= rand(fuv)*1.0;
+      c *= rand(fuv)*2.0;
 
       vec3 color = mix(color1, color2, c);
       // color = vec3(c);
 
-      gl_FragColor = vec4(color, 1.0);
+      gl_FragColor = vec4(color, 0.8);
     }
   `;
 
@@ -170,56 +169,57 @@ function init() {
     uniforms: uniforms,
     vertexShader: vertexShader,
     fragmentShader: fragmentShader,
+    transparent: true,
   });
 
   // 基本図形を生成
   const box = new THREE.Mesh(boxGeometry, material);
   const sphere = new THREE.Mesh(spehereGeometry, material);
 
-  box.scale.set(10, 10, 5);
-  sphere.scale.set(5, 5, 5);
-  scene.add(box);
+  // box.scale.set(10, 10, 5);
+  // scene.add(box);
   // scene.add(sphere);
 
   // objectをいっぱい配置
-  // var boxSizeTempX = 1;
-  // var boxSizeTempY = 1;
-  // var boxSizeTempZ = 1;
-  // for (let i = 0; i < n; i++) {
-  //   for (let j = 0; j < Math.floor((height - offsetY * 2) / boxSize); j++) {
-  //     for (let k = 0; k < n; k++) {
-  //       var cloneGeo = box.clone();
-  //       var cloneMaterial = material.clone();
+  var boxSizeTempX = 1;
+  var boxSizeTempY = 1;
+  var boxSizeTempZ = 1;
+  for (let i = 0; i < n; i++) {
+    // for (let j = 0; j < n; j++) {
+    for (let j = 0; j < Math.floor((height - offsetY * 2) / boxSize); j++) {
+      for (let k = 0; k < n; k++) {
+        var cloneGeo = box.clone();
+        var cloneMaterial = material.clone();
 
-  //       boxSizeTempX = Math.floor(Math.random() * 5) / 10 + 0.25;
-  //       boxSizeTempY = Math.floor(Math.random() * 15) / 10 + 0.5;
-  //       boxSizeTempZ = Math.floor(Math.random() * 10) / 10 + 0.5;
+        boxSizeTempX = Math.floor(Math.random() * 5) / 10 + 0.25;
+        boxSizeTempY = Math.floor(Math.random() * 15) / 10 + 0.5;
+        boxSizeTempZ = Math.floor(Math.random() * 10) / 10 + 0.5;
 
-  //       if (Math.random() < 0.25) {
-  //         cloneGeo = sphere.clone();
-  //         cloneGeo.scale.set(boxSizeTempX, boxSizeTempX, boxSizeTempX);
-  //       } else cloneGeo.scale.set(boxSizeTempX, boxSizeTempY, boxSizeTempZ);
+        if (Math.random() < 0.25) {
+          cloneGeo = sphere.clone();
+          cloneGeo.scale.set(boxSizeTempX, boxSizeTempX, boxSizeTempX);
+        } else cloneGeo.scale.set(boxSizeTempX, boxSizeTempY, boxSizeTempZ);
 
-  //       var colorNum0 = Math.floor(Math.random() * (colors.length - 1)) + 1;
-  //       var colorNum1 = Math.floor(Math.random() * (colors.length - 1)) + 1;
+        var colorNum0 = Math.floor(Math.random() * (colors.length - 1)) + 1;
+        var colorNum1 = Math.floor(Math.random() * (colors.length - 1)) + 1;
 
-  //       cloneMaterial.uniforms.color1.value = new THREE.Color(
-  //         colors[colorNum0]
-  //       );
-  //       cloneMaterial.uniforms.color2.value = new THREE.Color(
-  //         colors[colorNum1]
-  //       );
-  //       // cloneMaterial.color = new THREE.Color(colors[colorNum]);
-  //       cloneGeo.material = cloneMaterial;
+        cloneMaterial.uniforms.color1.value = new THREE.Color(
+          colors[colorNum0]
+        );
+        cloneMaterial.uniforms.color2.value = new THREE.Color(
+          colors[colorNum1]
+        );
+        // cloneMaterial.color = new THREE.Color(colors[colorNum]);
+        cloneGeo.material = cloneMaterial;
 
-  //       cloneGeo.position.x = -width / 2 + offset + boxSize / 2 + i * boxSize;
-  //       cloneGeo.position.y = -height / 2 + offsetY + boxSize / 2 + j * boxSize;
-  //       cloneGeo.position.z = -width / 2 + offset + boxSize / 2 + k * boxSize;
+        cloneGeo.position.x = -width / 2 + offset + boxSize / 2 + i * boxSize;
+        cloneGeo.position.y = -height / 2 + offsetY + boxSize / 2 + j * boxSize;
+        cloneGeo.position.z = -width / 2 + offset + boxSize / 2 + k * boxSize;
 
-  //       if (Math.random() < prob) scene.add(cloneGeo);
-  //     }
-  //   }
-  // }
+        if (Math.random() < prob) scene.add(cloneGeo);
+      }
+    }
+  }
 
   // ビューを変化
   const rotateXZ = Math.random();
@@ -228,10 +228,12 @@ function init() {
   if (Math.random() < 0.5) scene.rotation.y = 45 * (Math.PI / 180);
   else scene.rotation.y = -45 * (Math.PI / 180);
 
+  // scene.rotation.x = 15 * (Math.PI / 180);
+  // scene.rotation.y = 45 * (Math.PI / 180);
+
   tick();
 
   function tick() {
-    // box.rotation.x += 0.01;
     requestAnimationFrame(tick);
     renderer.render(scene, camera);
   }
