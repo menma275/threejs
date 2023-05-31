@@ -1,6 +1,6 @@
 function generativePalette() {
   var colors = [];
-  var n = 9;
+  var n = Math.floor(Math.random() * 7) + 2;
   var div = 4;
 
   var h = Math.random();

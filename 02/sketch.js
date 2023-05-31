@@ -74,23 +74,13 @@ function init() {
   // camera.position.set(0, 500, 1000);
   camera.lookAt(new THREE.Vector3(0, 0, 0));
 
-  var n = Math.floor(Math.random() * 5) + 2;
-  // n = 2;
   const prob = interpolate(n);
   const offset = width / 2.75;
   const offsetY = (height - offset) / 2;
-  const boxSize = (width - offset * 2) / n;
 
   // ヘルパーを出す
   const axesHelper = new THREE.AxesHelper(1000);
   // scene.add(axesHelper);
-
-  const boxGeometry = new THREE.BoxGeometry(boxSize, boxSize, boxSize);
-  const spehereGeometry = new THREE.SphereGeometry(boxSize / 2, 32, 16);
-  var material = new THREE.MeshBasicMaterial({
-    color: colors[1],
-    // wireframe: true,
-  });
 
   var brightColor = colors[1];
   var darkColor = colors[2];
@@ -180,31 +170,26 @@ function init() {
     }
   `;
 
-  material = new THREE.ShaderMaterial({
-    uniforms: uniforms,
-    vertexShader: vertexShader,
-    fragmentShader: fragmentShader,
-    transparent: true,
-  });
-
   console.log(windowSize);
-
-  // 基本図形を生成
-  const box = new THREE.Mesh(boxGeometry, material);
-  const sphere = new THREE.Mesh(spehereGeometry, material);
-
-  // boxに枠線を追加
-  const edges = new THREE.EdgesGeometry(boxGeometry);
-  const line = new THREE.LineSegments(
-    edges,
-    new THREE.LineBasicMaterial({
-      color: 0xffffff,
-    })
-  );
-  // box.add(line);
 
   const blockNumMax = 3;
   for (let blockNum = 0; blockNum < blockNumMax; blockNum++) {
+    var n = Math.floor(Math.random() * 2) + 2;
+    var boxSize = (width - offset * 2) / n;
+    const boxGeometry = new THREE.BoxGeometry(boxSize, boxSize, boxSize);
+    const spehereGeometry = new THREE.SphereGeometry(boxSize / 2, 32, 16);
+    var material = new THREE.MeshBasicMaterial({
+      color: colors[1],
+    });
+
+    material = new THREE.ShaderMaterial({
+      uniforms: uniforms,
+      vertexShader: vertexShader,
+      fragmentShader: fragmentShader,
+      transparent: true,
+    });
+    var box = new THREE.Mesh(boxGeometry, material);
+    var sphere = new THREE.Mesh(spehereGeometry, material);
     var coordinates = [];
     for (let x = 0; x < n; x++) {
       for (let y = 0; y < n; y++) {
@@ -213,6 +198,7 @@ function init() {
         }
       }
     }
+
     for (let i = 0; i < n; i++) {
       for (let j = 0; j < n; j++) {
         for (let k = 0; k < n; k++) {
@@ -221,7 +207,7 @@ function init() {
           var boxSizeZ = 1;
           var p = i + j * n * n + k * n;
           if (!coordinates[p]) {
-            var cloneGeo = box.clone();
+            var object = box.clone();
             var cloneMaterial = material.clone();
 
             var setTrueMax;
@@ -274,18 +260,18 @@ function init() {
               ((boxSizeX == boxSizeY) == boxSizeZ) == 1 &&
               Math.random() < 0.5
             ) {
-              cloneGeo = sphere.clone();
-              cloneGeo.rotation.y = 180 * (Math.PI / 180);
+              object = sphere.clone();
+              object.rotation.y = 180 * (Math.PI / 180);
             }
 
             var offsetSize = 0.3;
-            cloneGeo.scale.set(
+            object.scale.set(
               boxSizeX - offsetSize,
               boxSizeY - offsetSize,
               boxSizeZ - offsetSize
             );
 
-            // var colorNum = Math.floor(Math.random() * (colors.length - 1)) + 1;
+            var colorNum = Math.floor(Math.random() * (colors.length - 1)) + 1;
             var colorNum0 = Math.floor(Math.random() * (colors.length - 1)) + 1;
             var colorNum1 = Math.floor(Math.random() * (colors.length - 1)) + 1;
             while (colorNum0 == colorNum1) {
@@ -299,22 +285,22 @@ function init() {
               colors[colorNum1]
             );
             // cloneMaterial.color = new THREE.Color(colors[colorNum]);
-            cloneGeo.material = cloneMaterial;
+            object.material = cloneMaterial;
 
             var adjustX = (boxSizeX / 2) * boxSize;
             var adjustY = (boxSizeY / 2) * boxSize;
             var adjustZ = (boxSizeZ / 2) * boxSize;
             console.log("blockNum : " + blockNum);
-            cloneGeo.position.x = -width / 2 + offset + i * boxSize + adjustX;
-            cloneGeo.position.y =
+            object.position.x = -width / 2 + offset + i * boxSize + adjustX;
+            object.position.y =
               (-height / blockNumMax) * Math.sqrt(3) +
               (height / (blockNumMax + 0.25)) * (blockNum + 1) -
               height / 2 +
               offsetY +
               j * boxSize +
               adjustY;
-            cloneGeo.position.z = -width / 2 + offset + k * boxSize + adjustZ;
-            scene.add(cloneGeo);
+            object.position.z = -width / 2 + offset + k * boxSize + adjustZ;
+            scene.add(object);
           }
         }
       }
