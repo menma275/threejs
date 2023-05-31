@@ -20,23 +20,6 @@ function onResize() {
   camera.updateProjectionMatrix();
 }
 
-function interpolate(n) {
-  var startN = 5;
-  var startProb = 0.4;
-  var endN = 10;
-  var endProb = 0.2;
-
-  if (n <= startN) {
-    return startProb;
-  } else if (n >= endN) {
-    return endProb;
-  } else {
-    var t = (n - startN) / (endN - startN);
-    var prob = startProb * (1 - t) + endProb * t;
-    return prob;
-  }
-}
-
 function init() {
   // 画面サイズ
   var windowSize = Math.min(innerWidth, innerHeight);
@@ -44,8 +27,8 @@ function init() {
   width = windowSize;
   var height = windowSize;
 
-  colors = colorPalette();
-  // colors = generativePalette();
+  // colors = colorPalette();
+  colors = generativePalette();
 
   renderer = new THREE.WebGLRenderer({
     canvas: document.querySelector("#myCanvas"),
@@ -65,21 +48,12 @@ function init() {
     0.1,
     10000
   );
-  camera.position.set(0, 500, 1000);
+  camera.position.set(0, 1000, 0);
   camera.lookAt(new THREE.Vector3(0, 0, 0));
 
-  var n = Math.floor(Math.random() * 4) + 5;
-  const prob = interpolate(n);
-  const offset = width / 3;
-  var offsetY = (height - (width - offset * 2)) / 2;
-  offsetY = offset / 2;
-  const boxSize = (width - offset * 2) / n;
+  var boxSize = (width * 3) / 5;
 
   const boxGeometry = new THREE.BoxGeometry(boxSize, boxSize, boxSize);
-  const spehereGeometry = new THREE.SphereGeometry(boxSize / 2, 32, 16);
-  var material = new THREE.MeshBasicMaterial({
-    color: colors[1],
-  });
 
   var brightColor = colors[1];
   var darkColor = colors[2];
@@ -97,6 +71,7 @@ function init() {
   // shaderのマテリアル
   const uniforms = {
     time: { type: "f", value: 1.0 },
+    resolution: { type: "v2", value: new THREE.Vector2(boxSize, boxSize) },
     color1: { type: "vec3", value: darkColor },
     color2: { type: "vec3", value: brightColor },
   };
@@ -168,72 +143,92 @@ function init() {
     }
   `;
 
-  // material = new THREE.ShaderMaterial({
-  //   uniforms: uniforms,
-  //   vertexShader: vertexShader,
-  //   fragmentShader: fragmentShader,
-  //   transparent: true,
-  // });
+  const fragmentShader2 = `
+    precision mediump float;
+    uniform float time;
+    uniform vec2 resolution;
+    uniform vec3 color1;
+    uniform vec3 color2;
+
+    const vec3 cPos = vec3(-3.0,  3.0,  3.0);
+    const vec3 cDir = vec3(0.577, -0.577, -0.577);
+    const vec3 cUp  = vec3(0.577, 0.577, -0.577);
+
+    const vec3 lightDir = vec3(-0.577, 0.577, 0.577);
+
+    // smoothing min
+    float smoothMin(float d1, float d2, float k){
+        float h = exp(-k * d1) + exp(-k * d2);
+        return -log(h) / k;
+    }
+
+    // box distance function
+    float distFuncBox(vec3 p){
+        return length(max(abs(p) - vec3(0.5, 0.5, 0.5), 0.0)) - 0.1;
+    }
+
+    // distance function
+    float distFunc(vec3 p){
+        float d1 = distFuncBox(p+.1);
+        float d2 = distFuncBox(p);
+        return smoothMin(d1, d2, 8.0);
+    }
+
+    vec3 genNormal(vec3 p){
+        float d = 0.0001;
+        return normalize(vec3(
+            distFunc(p + vec3(  d, 0.0, 0.0)) - distFunc(p + vec3( -d, 0.0, 0.0)),
+            distFunc(p + vec3(0.0,   d, 0.0)) - distFunc(p + vec3(0.0,  -d, 0.0)),
+            distFunc(p + vec3(0.0, 0.0,   d)) - distFunc(p + vec3(0.0, 0.0,  -d))
+        ));
+    }
+
+    float rand(vec2 n) { 
+      return fract(sin(dot(n, vec2(12.9898, 4.1414))) * 43758.5453);
+    }
+
+    void main(void){
+        // fragment position
+        vec2 p = (gl_FragCoord.xy * 2.0 - resolution) / min(resolution.x, resolution.y);
+        
+        // camera and ray
+        vec3 cSide = cross(cDir, cUp);
+        float targetDepth = 2.0;
+        vec3 ray = normalize(cSide * p.x + cUp * p.y + cDir * targetDepth);
+        
+        // marching loop
+        float tmp, dist;
+        tmp = 0.0;
+        vec3 dPos = cPos;
+        for(int i = 0; i < 256; i++){
+            dist = distFunc(dPos);
+            tmp += dist;
+            dPos = cPos + tmp * ray;
+        }
+        
+        // hit check
+        vec3 color;
+        if(abs(dist) < 0.001){
+            vec3 normal = genNormal(dPos);
+            float diff = clamp(dot(lightDir, normal), 0.1, 1.0);
+            color = vec3(1.0, 1.0, 1.0) * diff;
+        }else{
+            color = vec3(0.0);
+        }
+        gl_FragColor = vec4(color, 1.0);
+    }
+  `;
+
+  material = new THREE.ShaderMaterial({
+    uniforms: uniforms,
+    vertexShader: vertexShader,
+    fragmentShader: fragmentShader2,
+    transparent: true,
+  });
 
   // 基本図形を生成
   const box = new THREE.Mesh(boxGeometry, material);
-  const sphere = new THREE.Mesh(spehereGeometry, material);
-
-  // box.scale.set(10, 10, 5);
-  // scene.add(box);
-  // scene.add(sphere);
-
-  // objectをいっぱい配置
-  var boxSizeTempX = 1;
-  var boxSizeTempY = 1;
-  var boxSizeTempZ = 1;
-  for (let i = 0; i < n; i++) {
-    // for (let j = 0; j < n; j++) {
-    for (let j = 0; j < Math.floor((height - offsetY * 2) / boxSize); j++) {
-      for (let k = 0; k < n; k++) {
-        var cloneGeo = box.clone();
-        var cloneMaterial = material.clone();
-
-        boxSizeTempX = Math.floor(Math.random() * 5) / 10 + 0.25;
-        boxSizeTempY = Math.floor(Math.random() * 15) / 10 + 0.5;
-        boxSizeTempZ = Math.floor(Math.random() * 10) / 10 + 0.5;
-
-        if (Math.random() < 0.25) {
-          cloneGeo = sphere.clone();
-          cloneGeo.scale.set(boxSizeTempX, boxSizeTempX, boxSizeTempX);
-        } else cloneGeo.scale.set(boxSizeTempX, boxSizeTempY, boxSizeTempZ);
-
-        var colorNum = Math.floor(Math.random() * (colors.length - 1)) + 1;
-        var colorNum0 = Math.floor(Math.random() * (colors.length - 1)) + 1;
-        var colorNum1 = Math.floor(Math.random() * (colors.length - 1)) + 1;
-
-        // cloneMaterial.uniforms.color1.value = new THREE.Color(
-        //   colors[colorNum0]
-        // );
-        // cloneMaterial.uniforms.color2.value = new THREE.Color(
-        //   colors[colorNum1]
-        // );
-        cloneMaterial.color = new THREE.Color(colors[colorNum]);
-        cloneGeo.material = cloneMaterial;
-
-        cloneGeo.position.x = -width / 2 + offset + boxSize / 2 + i * boxSize;
-        cloneGeo.position.y = -height / 2 + offsetY + boxSize / 2 + j * boxSize;
-        cloneGeo.position.z = -width / 2 + offset + boxSize / 2 + k * boxSize;
-
-        if (Math.random() < prob) scene.add(cloneGeo);
-      }
-    }
-  }
-
-  // ビューを変化
-  const rotateXZ = Math.random();
-  if (rotateXZ > 1 - 1 / 3) scene.rotation.z = 90 * (Math.PI / 180);
-  else if (rotateXZ < 1 / 3) scene.rotation.x = 15 * (Math.PI / 180);
-  if (Math.random() < 0.5) scene.rotation.y = 45 * (Math.PI / 180);
-  else scene.rotation.y = -45 * (Math.PI / 180);
-
-  // scene.rotation.x = 15 * (Math.PI / 180);
-  // scene.rotation.y = 45 * (Math.PI / 180);
+  scene.add(box);
 
   tick();
 
