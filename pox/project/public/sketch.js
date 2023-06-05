@@ -5,7 +5,10 @@ var renderer, camera;
 var colors, palette;
 var windowSize = 2000;
 
+const isSameNum = $fx.getParam("divNum");
+
 function onResize() {
+  // randomSeed(seed);
   // サイズを取得
   // windowSize = Math.min(innerWidth, innerHeight);
   var width = windowSize / Math.sqrt(2);
@@ -22,6 +25,7 @@ function onResize() {
 }
 
 function init() {
+  // randomSeed(seed);
   // 画面サイズ
   // windowSize = Math.min(innerWidth, innerHeight);
   var width = windowSize / Math.sqrt(2);
@@ -157,8 +161,9 @@ function init() {
   `;
 
   const blockNumMax = 3;
+  var n = Math.floor(Math.random() * 2) + 2;
   for (let blockNum = 0; blockNum < blockNumMax; blockNum++) {
-    var n = Math.floor(Math.random() * 2) + 2;
+    if (!isSameNum) n = Math.floor(Math.random() * 2) + 2;
     var boxSize = (width - offset * 2) / n;
 
     const boxGeometry = new THREE.BoxGeometry(boxSize, boxSize, boxSize);

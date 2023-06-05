@@ -1,9 +1,9 @@
 function generativePalette() {
   var colors = [];
-  var n = Math.floor(Math.random() * 6) + 3;
+  var n = $fx.getParam("color_num"); //Math.floor(Math.random() * 6) + 3
   var div = 4;
 
-  var h = Math.random();
+  var h = $fx.getParam("hue"); //Math.random();
   var s, l;
   var flexS = Math.random() * 0.25 + 0.25;
   var baseS = Math.random() * 0.25 + 0.25;
@@ -21,6 +21,7 @@ function generativePalette() {
     color.setHSL(h, s, l);
     colors.push(color);
   }
+  console.log(colors);
 
   return colors;
 }
