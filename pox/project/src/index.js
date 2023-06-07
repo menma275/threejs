@@ -4,7 +4,6 @@ console.log(fxrand());
 const sp = new URLSearchParams(window.location.search);
 console.log(sp);
 
-// this is how to define parameters
 $fx.params([
   {
     id: "color_num",
@@ -18,7 +17,7 @@ $fx.params([
   },
   {
     id: "hue",
-    name: "1st Color Hue",
+    name: "Random Color",
     type: "number",
     options: {
       min: 0,
@@ -28,28 +27,23 @@ $fx.params([
   },
   {
     id: "saturation",
-    name: "Saturation Range",
+    name: "Base Saturation",
     type: "number",
     options: {
       min: 0,
-      max: 0.5,
+      max: 1,
       step: 0.01,
     },
   },
   {
     id: "lightness",
-    name: "Lightness Range",
+    name: "Base Lightness",
     type: "number",
     options: {
-      min: 0,
-      max: 0.05,
-      step: 0.005,
+      min: 0.5,
+      max: 0.75,
+      step: 0.01,
     },
-  },
-  {
-    id: "divNum",
-    name: "Number of Objects (All the same?)",
-    type: "boolean",
   },
 ]);
 

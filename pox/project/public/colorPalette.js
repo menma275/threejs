@@ -5,9 +5,12 @@ function generativePalette() {
 
   var h = $fx.getParam("hue"); //Math.random();
   var s, l;
-  var flexS = Math.random() * 0.25 + 0.25;
-  var baseS = Math.random() * 0.25 + 0.25;
-  var baseL = Math.random() * 0.05 + 0.45;
+
+  var saturation = $fx.getParam("saturation");
+  var lightness = $fx.getParam("lightness");
+  // var flexS = Math.random() * 0.25 + 0.25;
+  // var baseS = Math.random() * 0.25 + 0.25;
+  // var baseL = Math.random() * 0.05 + 0.45;
 
   var color = new THREE.Color();
   color.setHSL(Math.random(), 0.05, 0.75);
@@ -16,12 +19,15 @@ function generativePalette() {
   for (var i = 0; i < n; i++) {
     color = new THREE.Color();
     h = (h + (1 / div) * i) % 1;
-    s = Math.random() * flexS + baseS;
-    l = Math.random() * 0.5 + baseL;
+    // s = Math.random() * 0.5 + saturation;
+    // l = Math.random() * 0.5 + lightness;
+    s = Math.random() * (1 - saturation) + saturation;
+    l = Math.random() * (1 - lightness) + lightness;
+    // s = Math.random() * flexS + baseS;
+    // l = Math.random() * 0.5 + baseL;
     color.setHSL(h, s, l);
     colors.push(color);
   }
-  console.log(colors);
 
   return colors;
 }
