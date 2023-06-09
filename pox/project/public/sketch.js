@@ -6,9 +6,6 @@ var colors, palette;
 var windowSize = 2000;
 
 function onResize() {
-  // randomSeed(seed);
-  // サイズを取得
-  // windowSize = Math.min(innerWidth, innerHeight);
   var width = windowSize / Math.sqrt(2);
   width = (windowSize * 3) / 4;
   var height = windowSize;
@@ -23,9 +20,6 @@ function onResize() {
 }
 
 function init() {
-  // randomSeed(seed);
-  // 画面サイズ
-  // windowSize = Math.min(innerWidth, innerHeight);
   var width = windowSize / Math.sqrt(2);
   width = (windowSize * 3) / 4;
   var height = windowSize;
@@ -55,10 +49,6 @@ function init() {
 
   const offset = width / 2.75;
   const offsetY = (height - offset) / 2;
-
-  // ヘルパーを出す
-  const axesHelper = new THREE.AxesHelper(windowSize);
-  // scene.add(axesHelper);
 
   var color1 = colors[1];
   var color2 = colors[2];
@@ -159,7 +149,7 @@ function init() {
 
   const blockNumMax = 3;
   for (let blockNum = 0; blockNum < blockNumMax; blockNum++) {
-    var n = Math.floor($fx.rand() * 3) + 2;
+    var n = Math.floor((($fx.rand() + $fx.randminter()) / 2) * 3) + 2;
     var boxSize = (width - offset * 2) / n;
 
     const boxGeometry = new THREE.BoxGeometry(boxSize, boxSize, boxSize);
@@ -208,7 +198,9 @@ function init() {
             var setTrueMax;
             var searchStep;
 
-            var moveDirection = Math.floor($fx.rand() * 3); //0:x, 1:y, 2:z
+            var moveDirection = Math.floor(
+              (($fx.rand() + $fx.randminter()) / 2) * 3
+            ); //0:x, 1:y, 2:z
 
             switch (moveDirection) {
               case 0:
@@ -219,7 +211,8 @@ function init() {
                     break;
                   }
                 }
-                boxSizeX = Math.floor($fx.rand() * maxNX) + 1;
+                boxSizeX =
+                  Math.floor((($fx.rand() + $fx.randminter()) / 2) * maxNX) + 1;
                 setTrueMax = boxSizeX;
                 searchStep = 1;
                 break;
@@ -230,7 +223,8 @@ function init() {
                     maxNY = isEmptyY;
                     break;
                   }
-                boxSizeY = Math.floor($fx.rand() * maxNY) + 1;
+                boxSizeY =
+                  Math.floor((($fx.rand() + $fx.randminter()) / 2) * maxNY) + 1;
                 setTrueMax = boxSizeY;
                 searchStep = n * n;
                 break;
@@ -241,7 +235,8 @@ function init() {
                     maxNZ = isEmptyZ;
                     break;
                   }
-                boxSizeZ = Math.floor($fx.rand() * maxNZ) + 1;
+                boxSizeZ =
+                  Math.floor((($fx.rand() + $fx.randminter()) / 2) * maxNZ) + 1;
                 setTrueMax = boxSizeZ;
                 searchStep = n;
                 break;
@@ -251,18 +246,33 @@ function init() {
               coordinates[p + setTrue * searchStep] = true;
             }
 
-            if (((boxSizeX == boxSizeY) == boxSizeZ) == 1 && $fx.rand() < 0.5) {
+            if (
+              ((boxSizeX == boxSizeY) == boxSizeZ) == 1 &&
+              ($fx.rand() + $fx.randminter()) / 2 < 0.5
+            ) {
               object = sphere.clone();
               material = sphereMaterial.clone();
-              object.rotation.x = $fx.rand() * 360 * (Math.PI / 180);
-              object.rotation.z = $fx.rand() * 360 * (Math.PI / 180);
-              object.rotation.y = $fx.rand() * 360 * (Math.PI / 180);
+              object.rotation.x =
+                (($fx.rand() + $fx.randminter()) / 2) * 360 * (Math.PI / 180);
+              object.rotation.z =
+                (($fx.rand() + $fx.randminter()) / 2) * 360 * (Math.PI / 180);
+              object.rotation.y =
+                (($fx.rand() + $fx.randminter()) / 2) * 360 * (Math.PI / 180);
             }
 
-            var colorNum0 = Math.floor($fx.rand() * (colors.length - 1)) + 1;
-            var colorNum1 = Math.floor($fx.rand() * (colors.length - 1)) + 1;
+            var colorNum0 =
+              Math.floor(
+                (($fx.rand() + $fx.randminter()) / 2) * (colors.length - 1)
+              ) + 1;
+            var colorNum1 =
+              Math.floor(
+                (($fx.rand() + $fx.randminter()) / 2) * (colors.length - 1)
+              ) + 1;
             while (colorNum0 == colorNum1) {
-              colorNum1 = Math.floor($fx.rand() * (colors.length - 1)) + 1;
+              colorNum1 =
+                Math.floor(
+                  (($fx.rand() + $fx.randminter()) / 2) * (colors.length - 1)
+                ) + 1;
             }
 
             material.uniforms.color1.value = new THREE.Color(colors[colorNum0]);
