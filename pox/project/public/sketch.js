@@ -1,8 +1,8 @@
-window.addEventListener("DOMContentLoaded", init);
+window.addEventListener("DOMContentLoaded", main);
 window.addEventListener("resize", onResize);
 
 var renderer, camera;
-var colors, palette;
+var colors;
 var windowSize = 2000;
 
 function onResize() {
@@ -19,7 +19,7 @@ function onResize() {
   camera.updateProjectionMatrix();
 }
 
-function init() {
+function main() {
   var width = windowSize / Math.sqrt(2);
   width = (windowSize * 3) / 4;
   var height = windowSize;
@@ -200,7 +200,7 @@ function init() {
 
             var moveDirection = Math.floor(
               (($fx.rand() + $fx.randminter()) / 2) * 3
-            ); //0:x, 1:y, 2:z
+            );
 
             switch (moveDirection) {
               case 0:

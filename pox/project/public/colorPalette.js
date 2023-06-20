@@ -1,6 +1,6 @@
 function generativePalette() {
   var colors = [];
-  const n = $fx.getParam("color_num");
+  const colorN = $fx.getParam("color_num") + 3;
   const div = 4;
 
   var h = $fx.getParam("hue");
@@ -13,7 +13,7 @@ function generativePalette() {
   color.setHSL(($fx.rand() + $fx.randminter()) / 2, 0.05, 0.75);
   colors.push(color);
 
-  for (var i = 0; i < n; i++) {
+  for (var i = 0; i < colorN; i++) {
     color = new THREE.Color();
     h = (h + (1 / div) * i) % 1;
     s = (($fx.rand() + $fx.randminter()) / 2) * (1 - saturation) + saturation;
